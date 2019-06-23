@@ -1,0 +1,52 @@
+version: "3"
+services:
+  frontend:
+    build:
+      dockerfile: frontend.Dockerfile
+      context: .
+    depends_on:
+      - transactions
+    ports:
+      - "80:80"
+  transactions:
+    build:
+      dockerfile: transactions.Dockerfile
+      context: .
+    image: payvision/transactions
+    depends_on:
+      - currency_service
+      - file_service
+    ports:
+      - "3000:3000"
+    links:
+      - file_service
+      - currency_service
+    environment:
+      SITE: local
+      FILE_SERVICE: http://file_service:3000
+      CURRENCY_SERVICE: http://currency_service:3000
+      API_ENDPOINT: https://jovs5zmau3.execute-api.eu-west-1.amazonaws.com/prod
+      API_USERNAME: code-challenge
+      API_PASSWORD: payvisioner
+      MAILER_HOST: smtp.gmail.com
+      MAILER_PORT: 587
+      MAILER_SSL: null
+      MAILER_USERNAME: payvision.sansossio@gmail.com
+      MAILER_PASSWORD: vOxfp9s5AbSRMWGEFGAYsspeCsPWZwViJAHO6LVnUkAT2sG8R0
+  currency_service:
+    build:
+      dockerfile: currency.Dockerfile
+      context: .
+    image: payvision/currency
+    ports:
+      - "4000:3000"
+  file_service:
+    build:
+      dockerfile: file.Dockerfile
+      context: .
+    image: payvision/file
+    # This is not necessary, match is only to you can see swagger definition
+    ports:
+      - "9000:3000"
+    environment:
+      SITE: local
